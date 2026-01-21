@@ -57,9 +57,20 @@ onRecordAfterCreateSuccess((e) => {
             console.log(`  Assigned draft position ${i + 1} to ${shuffled[i].get("display_name")}`);
         }
 
-        // 3. Create fantasy_tournaments for all season tournaments
+        // 3. Create fantasy_tournaments for scheduled tournaments only (not already played)
         const seasonId = league.get("season_id");
         const tournaments = $app.findRecordsByFilter(
+            "tournaments",
+            `season_id = "${seasonId}" && status = "scheduled"`,
+            "start_date",
+            0,
+            0
+        );
+
+        console.log(`Creating ${tournaments.length} fantasy tournaments (scheduled only)...`);
+
+        // Get all season tournaments to determine correct tournament_number
+        const allTournaments = $app.findRecordsByFilter(
             "tournaments",
             `season_id = "${seasonId}"`,
             "start_date",
@@ -67,7 +78,11 @@ onRecordAfterCreateSuccess((e) => {
             0
         );
 
-        console.log(`Creating ${tournaments.length} fantasy tournaments...`);
+        // Create a map of tournament_id to its position in the season
+        const tournamentPositions = {};
+        for (let i = 0; i < allTournaments.length; i++) {
+            tournamentPositions[allTournaments[i].id] = i + 1;
+        }
 
         for (let i = 0; i < tournaments.length; i++) {
             const t = tournaments[i];
@@ -89,16 +104,19 @@ onRecordAfterCreateSuccess((e) => {
             const collection = $app.findCollectionByNameOrId("fantasy_tournaments");
             const fantasyTournament = new Record(collection);
             
+            // Use the tournament's position in the full season, not just among scheduled
+            const tournamentNumber = tournamentPositions[t.id];
+            
             fantasyTournament.set("league_id", leagueId);
             fantasyTournament.set("tournament_id", t.id);
             fantasyTournament.set("tournament_name", t.get("name"));
-            fantasyTournament.set("tournament_number", i + 1);
+            fantasyTournament.set("tournament_number", tournamentNumber);
             fantasyTournament.set("status", "upcoming");
             fantasyTournament.set("start_date", t.get("start_date"));
             fantasyTournament.set("points_calculated", false);
 
             $app.save(fantasyTournament);
-            console.log(`  Created fantasy tournament: ${t.get("name")} (#${i + 1})`);
+            console.log(`  Created fantasy tournament: ${t.get("name")} (#${tournamentNumber})`);
         }
 
         console.log(`League ${leagueId} setup complete!`);
