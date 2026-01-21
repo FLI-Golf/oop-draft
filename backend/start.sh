@@ -40,4 +40,9 @@ if [ -n "$PB_ADMIN_EMAIL" ] && [ -n "$PB_ADMIN_PASSWORD" ] && [ ! -d "./pb_data"
     ./pocketbase superuser create "$PB_ADMIN_EMAIL" "$PB_ADMIN_PASSWORD" 2>/dev/null || true
 fi
 
+# Run seed script in background after PocketBase starts
+if [ -f "./seed.sh" ]; then
+    (sleep 3 && ./seed.sh) &
+fi
+
 ./pocketbase serve --http=0.0.0.0:8090
