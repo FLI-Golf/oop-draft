@@ -2,6 +2,11 @@ import { z } from 'zod';
 
 /**
  * Schema for a Group (pairing of teams for a round).
+ * 
+ * Start types:
+ * - standard: Groups start at hole 1 with staggered tee times (10-min intervals)
+ * - shotgun: All groups start simultaneously on different holes
+ * - playoff: Special start for tiebreakers
  */
 export const GroupSchema = z.object({
 	id: z.string(),
@@ -11,6 +16,7 @@ export const GroupSchema = z.object({
 	team_ids: z.array(z.string()).min(1).max(4),
 	scorekeeper_id: z.string().optional(),
 	tee_time: z.string().datetime().optional(),
+	starting_hole: z.number().int().min(1).max(18).default(1), // For shotgun starts
 	created: z.string().datetime().optional(),
 	updated: z.string().datetime().optional()
 });

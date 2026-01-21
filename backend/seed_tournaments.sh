@@ -61,15 +61,17 @@ for hole in "${holes[@]}"; do
 done
 echo "  Created 9 holes for Turf Paradise"
 
-# Create 6 tournaments in April 2027 (every Saturday)
+# Create 6 tournaments in April-May 2027 (every Saturday)
 # Progressive prize pools: 10%, 12.5%, 15%, 17.5%, 20%, 25% of $4M
+# April 2027: Saturdays are 3, 10, 17, 24
+# May 2027: Saturdays are 1, 8
 tournaments=(
-  '{"name":"Tournament 1 - Spring Opener","start_date":"2027-04-03T09:00:00Z","prize_pool":400000}'
-  '{"name":"Tournament 2 - Desert Classic","start_date":"2027-04-10T09:00:00Z","prize_pool":500000}'
-  '{"name":"Tournament 3 - Cactus Cup","start_date":"2027-04-17T09:00:00Z","prize_pool":600000}'
-  '{"name":"Tournament 4 - Arizona Open","start_date":"2027-04-24T09:00:00Z","prize_pool":700000}'
-  '{"name":"Tournament 5 - Phoenix Showdown","start_date":"2027-05-01T09:00:00Z","prize_pool":800000}'
-  '{"name":"Tournament 6 - Season Finale","start_date":"2027-05-08T09:00:00Z","prize_pool":1000000}'
+  '{"name":"Tournament 1 - Spring Opener","start_date":"2027-04-03T16:00:00Z","prize_pool":400000,"start_type":"standard"}'
+  '{"name":"Tournament 2 - Desert Classic","start_date":"2027-04-10T16:00:00Z","prize_pool":500000,"start_type":"standard"}'
+  '{"name":"Tournament 3 - Cactus Cup","start_date":"2027-04-17T16:00:00Z","prize_pool":600000,"start_type":"standard"}'
+  '{"name":"Tournament 4 - Arizona Open","start_date":"2027-04-24T16:00:00Z","prize_pool":700000,"start_type":"standard"}'
+  '{"name":"Tournament 5 - Phoenix Showdown","start_date":"2027-05-01T16:00:00Z","prize_pool":800000,"start_type":"standard"}'
+  '{"name":"Tournament 6 - Season Finale","start_date":"2027-05-08T16:00:00Z","prize_pool":1000000,"start_type":"standard"}'
 )
 
 echo "Creating tournaments..."

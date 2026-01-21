@@ -2,10 +2,19 @@ import { z } from 'zod';
 
 /**
  * Tournament status enum.
- * scheduled -> live -> final
+ * scheduled -> live -> halftime -> final
  */
-export const TournamentStatusEnum = z.enum(['scheduled', 'live', 'final']);
+export const TournamentStatusEnum = z.enum(['scheduled', 'live', 'halftime', 'final']);
 export type TournamentStatus = z.infer<typeof TournamentStatusEnum>;
+
+/**
+ * Tournament start type enum.
+ * - standard: Groups start at hole 1 with staggered tee times (10-min intervals)
+ * - shotgun: All groups start simultaneously on different holes
+ * - playoff: Special start for tiebreakers
+ */
+export const TournamentStartTypeEnum = z.enum(['standard', 'shotgun', 'playoff']);
+export type TournamentStartType = z.infer<typeof TournamentStartTypeEnum>;
 
 /**
  * Schema for a Tournament.
@@ -16,10 +25,12 @@ export const TournamentSchema = z.object({
 	season_id: z.string(),
 	course_id: z.string(),
 	status: TournamentStatusEnum.default('scheduled'),
+	start_type: TournamentStartTypeEnum.default('standard'),
 	start_date: z.string().datetime().optional(),
 	end_date: z.string().datetime().optional(),
 	current_round: z.number().int().min(0).default(0),
 	total_rounds: z.number().int().min(1).max(4).default(2),
+	prize_pool: z.number().min(0).default(0),
 	created: z.string().datetime().optional(),
 	updated: z.string().datetime().optional()
 });
