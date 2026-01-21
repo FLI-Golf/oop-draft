@@ -3,12 +3,12 @@ import type { HoleScoreEvent, ProScorecard, ScorecardEntry } from '$lib/schemas/
 import type { Hole } from '$lib/schemas/course.schema';
 
 /**
- * Scoring domain logic.
+ * ScoringManager - Domain logic for competition scoring.
  *
  * Handles validation and computation of scores.
  * Score events are append-only; scorecards are derived.
  */
-export class Scoring {
+export class ScoringManager {
 	/**
 	 * Validate a score submission.
 	 */

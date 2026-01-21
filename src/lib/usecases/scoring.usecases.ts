@@ -1,4 +1,4 @@
-import { Scoring } from '$lib/domain/Scoring';
+import { ScoringManager } from '$lib/domain/ScoringManager';
 import { Tournament } from '$lib/domain/Tournament';
 import { Group } from '$lib/domain/Group';
 import { ScoreEventRepo } from '$lib/data/repos/score.repo';
@@ -49,7 +49,7 @@ export async function submitHoleScore(
 	const groupProIds = groupTeams.flatMap((t) => [t.male_pro_id, t.female_pro_id]);
 
 	// 5. Validate the score
-	const error = Scoring.validateScoreSubmission(
+	const error = ScoringManager.validateScoreSubmission(
 		data.hole_number,
 		data.throws,
 		holes,
@@ -83,7 +83,7 @@ export async function getProScorecard(
 	const events = await ScoreEventRepo.getByProAndRound(proId, roundId);
 
 	// Build scorecard
-	return Scoring.buildScorecard(proId, roundId, events, holes);
+	return ScoringManager.buildScorecard(proId, roundId, events, holes);
 }
 
 /**
@@ -104,7 +104,7 @@ export async function getRoundScorecards(
 	const proIds = [...new Set(events.map((e) => e.pro_id))];
 
 	// Build scorecards
-	return proIds.map((proId) => Scoring.buildScorecard(proId, roundId, events, holes));
+	return proIds.map((proId) => ScoringManager.buildScorecard(proId, roundId, events, holes));
 }
 
 /**
@@ -131,7 +131,7 @@ export async function getTournamentLeaderboard(
 
 		for (const round of rounds) {
 			const roundEvents = events.filter((e) => e.pro_id === proId && e.round_id === round.id);
-			const scorecard = Scoring.buildScorecard(proId, round.id, roundEvents, holes);
+			const scorecard = ScoringManager.buildScorecard(proId, round.id, roundEvents, holes);
 			totalThrows += scorecard.total_throws;
 			totalPar += scorecard.total_par;
 		}
@@ -146,7 +146,7 @@ export async function getTournamentLeaderboard(
 		};
 	});
 
-	return Scoring.calculateLeaderboard(combinedScores);
+	return ScoringManager.calculateLeaderboard(combinedScores);
 }
 
 /**

@@ -1,5 +1,5 @@
 import { FantasyPointsCalculator, DEFAULT_SCORING_RULES } from '$lib/domain/FantasyPoints';
-import { Scoring } from '$lib/domain/Scoring';
+import { ScoringManager } from '$lib/domain/ScoringManager';
 import { FantasyPointsRepo } from '$lib/data/repos/fantasy-points.repo';
 import { FantasyTeamRepo } from '$lib/data/repos/fantasy-team.repo';
 import { FantasyParticipantRepo } from '$lib/data/repos/fantasy-league.repo';
@@ -40,7 +40,7 @@ export async function calculateTournamentPoints(
 
 		for (const round of rounds) {
 			const roundEvents = events.filter((e) => e.pro_id === proId && e.round_id === round.id);
-			const scorecard = Scoring.buildScorecard(proId, round.id, roundEvents, holes);
+			const scorecard = ScoringManager.buildScorecard(proId, round.id, roundEvents, holes);
 			totalThrows += scorecard.total_throws;
 			totalPar += scorecard.total_par;
 		}
@@ -55,7 +55,7 @@ export async function calculateTournamentPoints(
 		};
 	});
 
-	const leaderboard = Scoring.calculateLeaderboard(combinedScores);
+	const leaderboard = ScoringManager.calculateLeaderboard(combinedScores);
 
 	// Get all fantasy teams in the league
 	const teams = await FantasyTeamRepo.getByLeagueId(leagueId);
@@ -89,7 +89,7 @@ export async function calculateTournamentPoints(
 			// Round-by-round scoring points
 			for (const round of rounds) {
 				const roundEvents = events.filter((e) => e.pro_id === proId && e.round_id === round.id);
-				const scorecard = Scoring.buildScorecard(proId, round.id, roundEvents, holes);
+				const scorecard = ScoringManager.buildScorecard(proId, round.id, roundEvents, holes);
 				const roundPoints = calculator.calculateRoundPoints(scorecard);
 
 				if (roundPoints !== 0) {
