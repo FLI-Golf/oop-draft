@@ -46,6 +46,7 @@ fi
     [ -f "./seed.sh" ] && bash ./seed.sh
     [ -f "./seed_tournaments.sh" ] && bash ./seed_tournaments.sh
     [ -f "./seed_pros.sh" ] && bash ./seed_pros.sh
+    [ -f "./seed_fantasy.sh" ] && bash ./seed_fantasy.sh
 ) &
 
 ./pocketbase serve --http=0.0.0.0:8090
