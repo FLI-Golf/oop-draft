@@ -137,6 +137,9 @@ describe('League Ready (6/6 Participants)', () => {
 
 	describe('Fantasy Tournaments Creation', () => {
 		it('should create fantasy_tournaments for all season tournaments', async () => {
+			// The PocketBase hook automatically creates fantasy_tournaments when 6/6 is reached
+			// So we just verify they were created correctly
+
 			// Get all tournaments in the season
 			const tournaments = await ownerPB.collection('tournaments').getFullList({
 				filter: `season_id="${seasonId}"`,
@@ -145,21 +148,7 @@ describe('League Ready (6/6 Participants)', () => {
 
 			expect(tournaments.length).toBeGreaterThan(0);
 
-			// Create fantasy_tournaments
-			for (let i = 0; i < tournaments.length; i++) {
-				const t = tournaments[i];
-				await ownerPB.collection('fantasy_tournaments').create({
-					league_id: leagueId,
-					tournament_id: t.id,
-					tournament_name: t.name,
-					tournament_number: i + 1,
-					status: 'upcoming',
-					start_date: t.start_date,
-					points_calculated: false
-				});
-			}
-
-			// Verify
+			// Verify fantasy_tournaments were created by the hook
 			const fantasyTournaments = await ownerPB.collection('fantasy_tournaments').getFullList({
 				filter: `league_id="${leagueId}"`,
 				sort: 'tournament_number'
