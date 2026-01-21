@@ -40,36 +40,36 @@ teams=(
   "Glide Masters"
 )
 
-# Male pros (fictional names with ratings)
+# Male pros (real PDGA pros with world rankings)
 male_pros=(
-  "Jake Thompson:1050:1"
-  "Marcus Chen:1045:2"
-  "Ryan Mitchell:1040:3"
-  "David Garcia:1035:4"
-  "Chris Anderson:1030:5"
-  "Mike Johnson:1025:6"
-  "Tyler Williams:1020:7"
-  "Brandon Lee:1015:8"
-  "Josh Martinez:1010:9"
-  "Kevin Brown:1005:10"
-  "Alex Davis:1000:11"
-  "Matt Wilson:995:12"
+  "Gannon Buhr:1050:1"
+  "Ricky Wysocki:1045:2"
+  "Calvin Heimburg:1040:3"
+  "Isaac Robinson:1035:4"
+  "Paul McBeth:1030:5"
+  "Kyle Klein:1025:6"
+  "Matthew Orum:1020:7"
+  "Anthony Barela:1015:8"
+  "Niklas Anttila:1010:9"
+  "Chris Dickerson:1005:10"
+  "Simon Lizotte:1000:11"
+  "Ezra Robinson:995:12"
 )
 
-# Female pros (fictional names with ratings)
+# Female pros (real PDGA pros with world rankings)
 female_pros=(
-  "Sarah Collins:1000:1"
-  "Emily Rodriguez:995:2"
-  "Jessica Taylor:990:3"
-  "Amanda White:985:4"
-  "Rachel Kim:980:5"
-  "Lauren Scott:975:6"
-  "Megan Clark:970:7"
-  "Ashley Moore:965:8"
-  "Nicole Adams:960:9"
-  "Stephanie Hall:955:10"
-  "Christina Young:950:11"
-  "Jennifer King:945:12"
+  "Kristin Tattar:1000:1"
+  "Evelina Salonen:995:2"
+  "Ohn Scoggins:990:3"
+  "Missy Gannon:985:4"
+  "Holyn Handley:980:5"
+  "Silva Saarinen:975:7"
+  "Ella Hansen:970:8"
+  "Hailey King:965:9"
+  "Heidi Laine:960:10"
+  "Paige Pierce:955:11"
+  "Kat Mertsch:950:12"
+  "Natalie Ryan:945:13"
 )
 
 team_index=0
