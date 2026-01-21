@@ -24,20 +24,20 @@ fi
 echo "Seeding pro teams and pros..."
 
 # Create 12 pro teams (24 pros total for a good draft pool)
-# Each team has 2 players (1 male, 1 female typically, but we'll mix it up)
+# Each team has 2 players (1 male, 1 female)
 teams=(
-  "Desert Eagles"
-  "Phoenix Flyers"
-  "Cactus Kings"
-  "Arizona Aces"
-  "Sun Devils"
-  "Canyon Crushers"
-  "Dust Storm"
-  "Mesa Mavericks"
-  "Scottsdale Stars"
-  "Tempe Thunder"
-  "Tucson Titans"
-  "Flagstaff Flickers"
+  "Hyzer Heros"
+  "Huk-a-Mania"
+  "Flight Squad"
+  "Birdie Storm"
+  "Chain Breakers"
+  "Disc Jesters"
+  "Midas Touch"
+  "Chain Seekers"
+  "Fairway Bombers"
+  "Disc Dynasty"
+  "Ace Makers"
+  "Glide Masters"
 )
 
 # Male pros (fictional names with ratings)
@@ -110,28 +110,40 @@ for team_name in "${teams[@]}"; do
   team_index=$((team_index + 1))
 done
 
-# Create 2 reserve teams
+# Create 2 reserve teams (one for males, one for females)
 echo ""
 echo "Creating reserve teams..."
-for i in 1 2; do
-  team=$(curl -s -X POST "$PB_URL/api/collections/pro_teams/records" \
-    -H "Content-Type: application/json" \
-    -d "{\"team_name\":\"Reserve Team $i\",\"team_size\":2,\"team_earnings\":0,\"team_points\":0,\"is_reserve\":true}")
-  team_id=$(echo "$team" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
-  echo "Created reserve team: Reserve Team $i -> $team_id"
-  
-  # Add reserve pros
-  curl -s -X POST "$PB_URL/api/collections/pros/records" \
-    -H "Content-Type: application/json" \
-    -d "{\"name\":\"Reserve Male $i\",\"gender\":\"male\",\"rating\":900,\"active\":true,\"pro_team_id\":\"$team_id\"}" > /dev/null
-  curl -s -X POST "$PB_URL/api/collections/pros/records" \
-    -H "Content-Type: application/json" \
-    -d "{\"name\":\"Reserve Female $i\",\"gender\":\"female\",\"rating\":880,\"active\":true,\"pro_team_id\":\"$team_id\"}" > /dev/null
-  echo "  Added reserve pros"
-done
+
+# Reserve Males team
+team=$(curl -s -X POST "$PB_URL/api/collections/pro_teams/records" \
+  -H "Content-Type: application/json" \
+  -d "{\"team_name\":\"Reserve Males\",\"team_size\":2,\"team_earnings\":0,\"team_points\":0,\"is_reserve\":true}")
+team_id=$(echo "$team" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
+echo "Created reserve team: Reserve Males -> $team_id"
+curl -s -X POST "$PB_URL/api/collections/pros/records" \
+  -H "Content-Type: application/json" \
+  -d "{\"name\":\"Reserve Male 1\",\"gender\":\"male\",\"rating\":900,\"active\":true,\"pro_team_id\":\"$team_id\"}" > /dev/null
+curl -s -X POST "$PB_URL/api/collections/pros/records" \
+  -H "Content-Type: application/json" \
+  -d "{\"name\":\"Reserve Male 2\",\"gender\":\"male\",\"rating\":890,\"active\":true,\"pro_team_id\":\"$team_id\"}" > /dev/null
+echo "  Added 2 reserve males"
+
+# Reserve Females team
+team=$(curl -s -X POST "$PB_URL/api/collections/pro_teams/records" \
+  -H "Content-Type: application/json" \
+  -d "{\"team_name\":\"Reserve Females\",\"team_size\":2,\"team_earnings\":0,\"team_points\":0,\"is_reserve\":true}")
+team_id=$(echo "$team" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
+echo "Created reserve team: Reserve Females -> $team_id"
+curl -s -X POST "$PB_URL/api/collections/pros/records" \
+  -H "Content-Type: application/json" \
+  -d "{\"name\":\"Reserve Female 1\",\"gender\":\"female\",\"rating\":880,\"active\":true,\"pro_team_id\":\"$team_id\"}" > /dev/null
+curl -s -X POST "$PB_URL/api/collections/pros/records" \
+  -H "Content-Type: application/json" \
+  -d "{\"name\":\"Reserve Female 2\",\"gender\":\"female\",\"rating\":870,\"active\":true,\"pro_team_id\":\"$team_id\"}" > /dev/null
+echo "  Added 2 reserve females"
 
 echo ""
 echo "Pro seeding complete:"
-echo "  - 12 Pro Teams (24 pros)"
-echo "  - 2 Reserve Teams (4 reserve pros)"
+echo "  - 12 Pro Teams (24 pros: 12 male, 12 female)"
+echo "  - 2 Reserve Teams (4 reserve pros: 2 male, 2 female)"
 echo "  - Total: 14 teams, 28 pros"
