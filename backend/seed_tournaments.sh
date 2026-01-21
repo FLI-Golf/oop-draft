@@ -76,8 +76,8 @@ tournaments=(
 
 echo "Creating tournaments..."
 for t in "${tournaments[@]}"; do
-  # Add season_id, course_id, status, total_rounds
-  t_data=$(echo "$t" | sed "s/}$/,\"season_id\":\"$season_id\",\"course_id\":\"$course_id\",\"status\":\"scheduled\",\"total_rounds\":2,\"current_round\":0}/")
+  # Add season_id, course_id, status (no rounds - using front/back halves)
+  t_data=$(echo "$t" | sed "s/}$/,\"season_id\":\"$season_id\",\"course_id\":\"$course_id\",\"status\":\"scheduled\"}/")
   result=$(curl -s -X POST "$PB_URL/api/collections/tournaments/records" \
     -H "Content-Type: application/json" \
     -d "$t_data")
@@ -85,20 +85,12 @@ for t in "${tournaments[@]}"; do
   t_name=$(echo "$t" | grep -o '"name":"[^"]*"' | cut -d'"' -f4)
   t_prize=$(echo "$t" | grep -o '"prize_pool":[0-9]*' | cut -d: -f2)
   echo "  Created: $t_name -> $t_id (prize: \$$(printf "%'d" $t_prize))"
-  
-  # Create 2 rounds for each tournament (Round 1 = first 9, Round 2 = back 9 with adjusted baskets)
-  curl -s -X POST "$PB_URL/api/collections/tournament_rounds/records" \
-    -H "Content-Type: application/json" \
-    -d "{\"tournament_id\":\"$t_id\",\"round_number\":1,\"status\":\"pending\"}" > /dev/null
-  curl -s -X POST "$PB_URL/api/collections/tournament_rounds/records" \
-    -H "Content-Type: application/json" \
-    -d "{\"tournament_id\":\"$t_id\",\"round_number\":2,\"status\":\"pending\"}" > /dev/null
 done
 
 echo ""
 echo "Tournament seeding complete:"
 echo "  - 1 Season (2027, \$4,000,000 yearly pot)"
 echo "  - 1 Course (Turf Paradise, 9 holes)"
-echo "  - 6 Tournaments (April-May 2027)"
+echo "  - 6 Tournaments (April-May 2027, Saturdays at 9am AZ time)"
 echo "    Progressive prizes: \$400K -> \$500K -> \$600K -> \$700K -> \$800K -> \$1M"
-echo "  - 12 Tournament Rounds (2 per tournament)"
+echo "    Each tournament: front 9 -> halftime -> back 9"
