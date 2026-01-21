@@ -5,5 +5,8 @@ export default defineConfig({
 	plugins: [sveltekit()],
 	server: {
 		allowedHosts: true
+	},
+	test: {
+		include: ['src/**/*.{test,spec}.{js,ts}']
 	}
 });
