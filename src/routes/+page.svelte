@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createAuthState } from '$lib/stores/auth.store';
+	import { createAuthState } from '$lib/stores/auth.store.svelte';
 	import { onMount } from 'svelte';
 
 	const auth = createAuthState();
