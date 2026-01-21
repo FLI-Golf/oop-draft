@@ -37,18 +37,17 @@ course=$(curl -s -X POST "$PB_URL/api/collections/courses/records" \
 course_id=$(echo "$course" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
 echo "Created course: Turf Paradise -> $course_id"
 
-# Create 9 holes with names
-# Typical disc golf pars: mix of 3s and 4s
+# Create 9 holes with names - all par 3, distances 200-320 feet
 holes=(
-  '{"number":1,"name":"The Opener","par":3}'
-  '{"number":2,"name":"Desert Run","par":4}'
-  '{"number":3,"name":"Cactus Alley","par":3}'
-  '{"number":4,"name":"The Wash","par":4}'
-  '{"number":5,"name":"Sunset View","par":3}'
-  '{"number":6,"name":"Snake Bend","par":4}'
-  '{"number":7,"name":"Dust Devil","par":3}'
-  '{"number":8,"name":"Canyon Shot","par":4}'
-  '{"number":9,"name":"The Finisher","par":3}'
+  '{"number":1,"name":"The Opener","par":3,"distance":200}'
+  '{"number":2,"name":"Desert Run","par":3,"distance":245}'
+  '{"number":3,"name":"Cactus Alley","par":3,"distance":220}'
+  '{"number":4,"name":"The Wash","par":3,"distance":280}'
+  '{"number":5,"name":"Sunset View","par":3,"distance":260}'
+  '{"number":6,"name":"Snake Bend","par":3,"distance":290}'
+  '{"number":7,"name":"Dust Devil","par":3,"distance":235}'
+  '{"number":8,"name":"Canyon Shot","par":3,"distance":305}'
+  '{"number":9,"name":"The Finisher","par":3,"distance":320}'
 )
 
 echo "Creating holes..."
@@ -65,13 +64,14 @@ echo "  Created 9 holes for Turf Paradise"
 # Progressive prize pools: 10%, 12.5%, 15%, 17.5%, 20%, 25% of $4M
 # April 2027: Saturdays are 3, 10, 17, 24
 # May 2027: Saturdays are 1, 8
+# Start time: 1pm Arizona (UTC-7) = 8pm UTC (20:00)
 tournaments=(
-  '{"name":"Tournament 1 - Spring Opener","start_date":"2027-04-03T16:00:00Z","prize_pool":400000,"start_type":"standard"}'
-  '{"name":"Tournament 2 - Desert Classic","start_date":"2027-04-10T16:00:00Z","prize_pool":500000,"start_type":"standard"}'
-  '{"name":"Tournament 3 - Cactus Cup","start_date":"2027-04-17T16:00:00Z","prize_pool":600000,"start_type":"standard"}'
-  '{"name":"Tournament 4 - Arizona Open","start_date":"2027-04-24T16:00:00Z","prize_pool":700000,"start_type":"standard"}'
-  '{"name":"Tournament 5 - Phoenix Showdown","start_date":"2027-05-01T16:00:00Z","prize_pool":800000,"start_type":"standard"}'
-  '{"name":"Tournament 6 - Season Finale","start_date":"2027-05-08T16:00:00Z","prize_pool":1000000,"start_type":"standard"}'
+  '{"name":"Tournament 1 - Spring Opener","start_date":"2027-04-03T20:00:00Z","prize_pool":400000,"start_type":"standard"}'
+  '{"name":"Tournament 2 - Desert Classic","start_date":"2027-04-10T20:00:00Z","prize_pool":500000,"start_type":"standard"}'
+  '{"name":"Tournament 3 - Cactus Cup","start_date":"2027-04-17T20:00:00Z","prize_pool":600000,"start_type":"standard"}'
+  '{"name":"Tournament 4 - Arizona Open","start_date":"2027-04-24T20:00:00Z","prize_pool":700000,"start_type":"standard"}'
+  '{"name":"Tournament 5 - Phoenix Showdown","start_date":"2027-05-01T20:00:00Z","prize_pool":800000,"start_type":"standard"}'
+  '{"name":"Tournament 6 - Season Finale","start_date":"2027-05-08T20:00:00Z","prize_pool":1000000,"start_type":"standard"}'
 )
 
 echo "Creating tournaments..."
@@ -90,7 +90,7 @@ done
 echo ""
 echo "Tournament seeding complete:"
 echo "  - 1 Season (2027, \$4,000,000 yearly pot)"
-echo "  - 1 Course (Turf Paradise, 9 holes)"
-echo "  - 6 Tournaments (April-May 2027, Saturdays at 9am AZ time)"
+echo "  - 1 Course (Turf Paradise, 9 holes, all par 3, 200-320 ft)"
+echo "  - 6 Tournaments (April-May 2027, Saturdays at 1pm Arizona)"
 echo "    Progressive prizes: \$400K -> \$500K -> \$600K -> \$700K -> \$800K -> \$1M"
 echo "    Each tournament: front 9 -> halftime -> back 9"
