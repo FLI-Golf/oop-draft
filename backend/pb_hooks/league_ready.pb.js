@@ -50,12 +50,40 @@ onRecordAfterCreateSuccess((e) => {
             [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
         }
 
+        // Build draft_order array (user_ids in draft order)
+        const draftOrder = [];
+        
         // Assign positions 1 through N
         for (let i = 0; i < shuffled.length; i++) {
             shuffled[i].set("draft_position", i + 1);
             $app.save(shuffled[i]);
+            draftOrder.push(shuffled[i].get("user_id"));
             console.log(`  Assigned draft position ${i + 1} to ${shuffled[i].get("display_name")}`);
         }
+
+        // Set draft_order on league
+        league.set("draft_order", JSON.stringify(draftOrder));
+        console.log(`  Draft order set: ${draftOrder.join(", ")}`);
+
+        // 2b. Build draft_pool with all available pros
+        const pros = $app.findRecordsByFilter(
+            "pros",
+            "",
+            "name",
+            0,
+            0
+        );
+        const draftPool = pros.map(p => p.id);
+        league.set("draft_pool", JSON.stringify(draftPool));
+        console.log(`  Draft pool initialized with ${draftPool.length} pros`);
+
+        // 2c. Initialize empty draft_results
+        const draftResults = {};
+        for (const userId of draftOrder) {
+            draftResults[userId] = [];
+        }
+        league.set("draft_results", JSON.stringify(draftResults));
+        console.log(`  Draft results initialized for ${draftOrder.length} participants`);
 
         // 3. Create fantasy_tournaments for scheduled tournaments only (not already played)
         const seasonId = league.get("season_id");

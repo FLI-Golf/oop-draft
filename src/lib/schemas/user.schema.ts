@@ -26,7 +26,7 @@ export const UserProfileSchema = z.object({
 	id: z.string(),
 	user_id: z.string(), // Links to PocketBase users collection
 	display_name: z.string().min(1, 'Display name is required'),
-	avatar_url: z.string().url().optional(),
+	avatar_url: z.union([z.string().url(), z.literal('')]).optional(),
 	role: UserRoleEnum.default('user'),
 	
 	// Preferences

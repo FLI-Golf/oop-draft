@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { createAuthState } from '$lib/stores/auth.store.svelte';
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 
 	const auth = createAuthState();
 
@@ -55,6 +56,7 @@
 				await auth.register(email, password, passwordConfirm, displayName);
 			}
 			closeModal();
+			goto('/user/dashboard');
 		} catch (err) {
 			formError = err instanceof Error ? err.message : 'An error occurred';
 		} finally {
