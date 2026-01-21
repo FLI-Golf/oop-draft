@@ -23,12 +23,12 @@ fi
 
 echo "Seeding 2027 season and tournaments..."
 
-# Create 2027 Season
+# Create 2027 Season with $4M yearly pot
 season=$(curl -s -X POST "$PB_URL/api/collections/seasons/records" \
   -H "Content-Type: application/json" \
-  -d '{"name":"2027 Season","year":2027,"active":true}')
+  -d '{"name":"2027 Season","year":2027,"active":true,"yearly_pot":4000000}')
 season_id=$(echo "$season" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
-echo "Created season: 2027 Season -> $season_id"
+echo "Created season: 2027 Season -> $season_id (yearly_pot: \$4,000,000)"
 
 # Create Turf Paradise course (9 holes)
 course=$(curl -s -X POST "$PB_URL/api/collections/courses/records" \
@@ -62,13 +62,14 @@ done
 echo "  Created 9 holes for Turf Paradise"
 
 # Create 6 tournaments in April 2027 (every Saturday)
+# Progressive prize pools: 10%, 12.5%, 15%, 17.5%, 20%, 25% of $4M
 tournaments=(
-  '{"name":"Tournament 1 - Spring Opener","start_date":"2027-04-03T09:00:00Z"}'
-  '{"name":"Tournament 2 - Desert Classic","start_date":"2027-04-10T09:00:00Z"}'
-  '{"name":"Tournament 3 - Cactus Cup","start_date":"2027-04-17T09:00:00Z"}'
-  '{"name":"Tournament 4 - Arizona Open","start_date":"2027-04-24T09:00:00Z"}'
-  '{"name":"Tournament 5 - Phoenix Showdown","start_date":"2027-05-01T09:00:00Z"}'
-  '{"name":"Tournament 6 - Season Finale","start_date":"2027-05-08T09:00:00Z"}'
+  '{"name":"Tournament 1 - Spring Opener","start_date":"2027-04-03T09:00:00Z","prize_pool":400000}'
+  '{"name":"Tournament 2 - Desert Classic","start_date":"2027-04-10T09:00:00Z","prize_pool":500000}'
+  '{"name":"Tournament 3 - Cactus Cup","start_date":"2027-04-17T09:00:00Z","prize_pool":600000}'
+  '{"name":"Tournament 4 - Arizona Open","start_date":"2027-04-24T09:00:00Z","prize_pool":700000}'
+  '{"name":"Tournament 5 - Phoenix Showdown","start_date":"2027-05-01T09:00:00Z","prize_pool":800000}'
+  '{"name":"Tournament 6 - Season Finale","start_date":"2027-05-08T09:00:00Z","prize_pool":1000000}'
 )
 
 echo "Creating tournaments..."
@@ -80,7 +81,8 @@ for t in "${tournaments[@]}"; do
     -d "$t_data")
   t_id=$(echo "$result" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
   t_name=$(echo "$t" | grep -o '"name":"[^"]*"' | cut -d'"' -f4)
-  echo "  Created: $t_name -> $t_id"
+  t_prize=$(echo "$t" | grep -o '"prize_pool":[0-9]*' | cut -d: -f2)
+  echo "  Created: $t_name -> $t_id (prize: \$$(printf "%'d" $t_prize))"
   
   # Create 2 rounds for each tournament (Round 1 = first 9, Round 2 = back 9 with adjusted baskets)
   curl -s -X POST "$PB_URL/api/collections/tournament_rounds/records" \
@@ -93,7 +95,8 @@ done
 
 echo ""
 echo "Tournament seeding complete:"
-echo "  - 1 Season (2027)"
+echo "  - 1 Season (2027, \$4,000,000 yearly pot)"
 echo "  - 1 Course (Turf Paradise, 9 holes)"
 echo "  - 6 Tournaments (April-May 2027)"
+echo "    Progressive prizes: \$400K -> \$500K -> \$600K -> \$700K -> \$800K -> \$1M"
 echo "  - 12 Tournament Rounds (2 per tournament)"
