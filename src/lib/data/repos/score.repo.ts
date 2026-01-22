@@ -11,11 +11,11 @@ import {
  */
 export const ScoreEventRepo = {
 	/**
-	 * Get all score events for a round.
+	 * Get all score events for a half.
 	 */
-	async getByRoundId(roundId: string): Promise<HoleScoreEvent[]> {
-		const records = await pb.collection('score_events').getFullList({
-			filter: `round_id = "${roundId}"`,
+	async getByHalf(tournamentId: string, half: 'front' | 'back'): Promise<HoleScoreEvent[]> {
+		const records = await pb.collection('hole_score_events').getFullList({
+			filter: `tournament_id = "${tournamentId}" && half = "${half}"`,
 			sort: 'entered_at'
 		});
 		return records.map((r) => HoleScoreEventSchema.parse(r));
@@ -25,7 +25,7 @@ export const ScoreEventRepo = {
 	 * Get all score events for a group.
 	 */
 	async getByGroupId(groupId: string): Promise<HoleScoreEvent[]> {
-		const records = await pb.collection('score_events').getFullList({
+		const records = await pb.collection('hole_score_events').getFullList({
 			filter: `group_id = "${groupId}"`,
 			sort: 'entered_at'
 		});
@@ -33,11 +33,11 @@ export const ScoreEventRepo = {
 	},
 
 	/**
-	 * Get score events for a specific pro in a round.
+	 * Get score events for a specific pro in a tournament.
 	 */
-	async getByProAndRound(proId: string, roundId: string): Promise<HoleScoreEvent[]> {
-		const records = await pb.collection('score_events').getFullList({
-			filter: `pro_id = "${proId}" && round_id = "${roundId}"`,
+	async getByProAndTournament(proId: string, tournamentId: string): Promise<HoleScoreEvent[]> {
+		const records = await pb.collection('hole_score_events').getFullList({
+			filter: `pro_id = "${proId}" && tournament_id = "${tournamentId}"`,
 			sort: 'entered_at'
 		});
 		return records.map((r) => HoleScoreEventSchema.parse(r));
@@ -47,7 +47,7 @@ export const ScoreEventRepo = {
 	 * Get all score events for a tournament.
 	 */
 	async getByTournamentId(tournamentId: string): Promise<HoleScoreEvent[]> {
-		const records = await pb.collection('score_events').getFullList({
+		const records = await pb.collection('hole_score_events').getFullList({
 			filter: `tournament_id = "${tournamentId}"`,
 			sort: 'entered_at'
 		});
@@ -58,7 +58,7 @@ export const ScoreEventRepo = {
 	 * Create a score event.
 	 */
 	async create(data: HoleScoreEventCreate): Promise<HoleScoreEvent> {
-		const record = await pb.collection('score_events').create({
+		const record = await pb.collection('hole_score_events').create({
 			...data,
 			entered_at: new Date().toISOString()
 		});
@@ -72,7 +72,7 @@ export const ScoreEventRepo = {
 		const created: HoleScoreEvent[] = [];
 		const now = new Date().toISOString();
 		for (const event of events) {
-			const record = await pb.collection('score_events').create({
+			const record = await pb.collection('hole_score_events').create({
 				...event,
 				entered_at: now
 			});

@@ -2,17 +2,18 @@ import { z } from 'zod';
 
 /**
  * Tournament status enum.
- * scheduled -> live -> halftime -> final
+ * scheduled -> live -> halftime -> playoff -> final
  */
-export const TournamentStatusEnum = z.enum(['scheduled', 'live', 'halftime', 'final']);
+export const TournamentStatusEnum = z.enum(['scheduled', 'live', 'halftime', 'playoff', 'final']);
 export type TournamentStatus = z.infer<typeof TournamentStatusEnum>;
 
 /**
- * Tournament half enum.
- * front -> back -> complete
+ * Tournament half/phase enum.
+ * front -> back -> playoff -> complete
  * Each tournament has 2 halves playing the same 9 holes with adjusted baskets at halftime.
+ * Playoff occurs if there are ties after back 9.
  */
-export const TournamentHalfEnum = z.enum(['front', 'back', 'complete']);
+export const TournamentHalfEnum = z.enum(['front', 'back', 'playoff', 'complete']);
 export type TournamentHalf = z.infer<typeof TournamentHalfEnum>;
 
 /**

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /**
- * Fantasy Tournament status.
+ * Fantasy Tournament status (tournament lifecycle).
  */
 export const FantasyTournamentStatusEnum = z.enum([
 	'upcoming', // Tournament hasn't started
@@ -10,6 +10,17 @@ export const FantasyTournamentStatusEnum = z.enum([
 	'cancelled' // Tournament was cancelled
 ]);
 export type FantasyTournamentStatus = z.infer<typeof FantasyTournamentStatusEnum>;
+
+/**
+ * Draft status (draft lifecycle).
+ */
+export const DraftStatusEnum = z.enum([
+	'pending', // Not ready to draft (league not full, etc.)
+	'ready', // Ready to start draft
+	'in_progress', // Draft currently happening
+	'complete' // Draft finished
+]);
+export type DraftStatus = z.infer<typeof DraftStatusEnum>;
 
 /**
  * Schema for a Fantasy Tournament.
@@ -22,6 +33,10 @@ export const FantasyTournamentSchema = z.object({
 	tournament_name: z.string(), // Denormalized for display
 	tournament_number: z.number().int().min(1), // 1st, 2nd, 3rd tournament in season
 	status: FantasyTournamentStatusEnum.default('upcoming'),
+	draft_status: DraftStatusEnum.optional(),
+	draft_order: z.array(z.string()).optional(), // User IDs in draft order
+	draft_management: z.any().optional(), // Complex draft state object
+	draft_results: z.any().optional(), // Draft picks and teams
 	start_date: z.string().datetime().optional(),
 	end_date: z.string().datetime().optional(),
 	points_calculated: z.boolean().default(false),

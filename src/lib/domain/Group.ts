@@ -5,28 +5,29 @@ import type { Team } from '$lib/domain/Team';
 /**
  * Group domain class.
  *
- * A group is a pairing of teams for a specific round.
+ * A group is a pairing of teams that play together through the tournament.
+ * All groups play front 9, then halftime, then back 9.
  * Contains 1-4 teams and optionally has an assigned scorekeeper.
  */
 export class Group {
 	readonly id: string;
 	readonly tournamentId: string;
-	readonly roundId: string;
 	readonly name: string;
 	readonly teamIds: readonly string[];
 	readonly scorekeeperId: string | undefined;
 	readonly teeTime: string | undefined;
+	readonly startingHole: number;
 
 	private _teams?: Team[];
 
 	constructor(data: GroupDTO, teams?: Team[]) {
 		this.id = data.id;
 		this.tournamentId = data.tournament_id;
-		this.roundId = data.round_id;
 		this.name = data.name;
 		this.teamIds = data.team_ids;
 		this.scorekeeperId = data.scorekeeper_id;
 		this.teeTime = data.tee_time;
+		this.startingHole = data.starting_hole;
 		this._teams = teams;
 	}
 
