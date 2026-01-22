@@ -2,10 +2,28 @@ import { z } from 'zod';
 
 /**
  * Tournament status enum.
- * scheduled -> live -> final
+ * scheduled -> live -> halftime -> playoff -> final
  */
-export const TournamentStatusEnum = z.enum(['scheduled', 'live', 'final']);
+export const TournamentStatusEnum = z.enum(['scheduled', 'live', 'halftime', 'playoff', 'final']);
 export type TournamentStatus = z.infer<typeof TournamentStatusEnum>;
+
+/**
+ * Tournament half/phase enum.
+ * front -> back -> playoff -> complete
+ * Each tournament has 2 halves playing the same 9 holes with adjusted baskets at halftime.
+ * Playoff occurs if there are ties after back 9.
+ */
+export const TournamentHalfEnum = z.enum(['front', 'back', 'playoff', 'complete']);
+export type TournamentHalf = z.infer<typeof TournamentHalfEnum>;
+
+/**
+ * Tournament start type enum.
+ * - standard: Groups start at hole 1 with staggered tee times (10-min intervals)
+ * - shotgun: All groups start simultaneously on different holes
+ * - playoff: Special start for tiebreakers
+ */
+export const TournamentStartTypeEnum = z.enum(['standard', 'shotgun', 'playoff']);
+export type TournamentStartType = z.infer<typeof TournamentStartTypeEnum>;
 
 /**
  * Schema for a Tournament.
@@ -16,10 +34,11 @@ export const TournamentSchema = z.object({
 	season_id: z.string(),
 	course_id: z.string(),
 	status: TournamentStatusEnum.default('scheduled'),
+	current_half: TournamentHalfEnum.optional(),
+	start_type: TournamentStartTypeEnum.default('standard'),
 	start_date: z.string().datetime().optional(),
 	end_date: z.string().datetime().optional(),
-	current_round: z.number().int().min(0).default(0),
-	total_rounds: z.number().int().min(1).max(4).default(2),
+	prize_pool: z.number().min(0).default(0),
 	created: z.string().datetime().optional(),
 	updated: z.string().datetime().optional()
 });
@@ -48,27 +67,4 @@ export const TournamentUpdateSchema = z.object({
 });
 export type TournamentUpdate = z.infer<typeof TournamentUpdateSchema>;
 
-/**
- * Schema for a Tournament Round.
- */
-export const TournamentRoundSchema = z.object({
-	id: z.string(),
-	tournament_id: z.string(),
-	round_number: z.number().int().min(1),
-	status: z.enum(['pending', 'in_progress', 'complete']).default('pending'),
-	created: z.string().datetime().optional(),
-	updated: z.string().datetime().optional()
-});
-
-export type TournamentRound = z.infer<typeof TournamentRoundSchema>;
-
-/**
- * Schema for creating a Tournament Round.
- */
-export const TournamentRoundCreateSchema = TournamentRoundSchema.omit({
-	id: true,
-	created: true,
-	updated: true,
-	status: true
-});
-export type TournamentRoundCreate = z.infer<typeof TournamentRoundCreateSchema>;
+// Tournament rounds removed - using front/back halves instead

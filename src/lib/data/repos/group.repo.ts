@@ -1,17 +1,17 @@
 import { pb } from '$lib/data/pb/pb.client';
 import { NotFoundError } from '$lib/core/errors';
-import { GroupSchema, type Group, type GroupCreate, type GroupUpdate } from '$lib/schemas/group.schema';
+import { GroupSchema, type Group, type GroupCreate, type GroupUpdate, type GroupHalf } from '$lib/schemas/group.schema';
 
 /**
  * Repository for Group persistence.
  */
 export const GroupRepo = {
 	/**
-	 * Get all groups for a round.
+	 * Get all groups for a tournament half.
 	 */
-	async getByRoundId(roundId: string): Promise<Group[]> {
+	async getByTournamentAndHalf(tournamentId: string, half: GroupHalf): Promise<Group[]> {
 		const records = await pb.collection('groups').getFullList({
-			filter: `round_id = "${roundId}"`
+			filter: `tournament_id = "${tournamentId}" && half = "${half}"`
 		});
 		return records.map((r) => GroupSchema.parse(r));
 	},
@@ -44,9 +44,19 @@ export const GroupRepo = {
 	/**
 	 * Get groups assigned to a scorekeeper.
 	 */
-	async getByScorekeeperIdAndRound(scorekeeperId: string, roundId: string): Promise<Group[]> {
+	async getByScorekeeperIdAndTournament(scorekeeperId: string, tournamentId: string): Promise<Group[]> {
 		const records = await pb.collection('groups').getFullList({
-			filter: `scorekeeper_id = "${scorekeeperId}" && round_id = "${roundId}"`
+			filter: `scorekeeper_id = "${scorekeeperId}" && tournament_id = "${tournamentId}"`
+		});
+		return records.map((r) => GroupSchema.parse(r));
+	},
+
+	/**
+	 * Get all groups for a scorekeeper (across all tournaments).
+	 */
+	async getByScorekeeperId(scorekeeperId: string): Promise<Group[]> {
+		const records = await pb.collection('groups').getFullList({
+			filter: `scorekeeper_id = "${scorekeeperId}"`
 		});
 		return records.map((r) => GroupSchema.parse(r));
 	},
@@ -83,11 +93,11 @@ export const GroupRepo = {
 	},
 
 	/**
-	 * Delete all groups for a round.
+	 * Delete all groups for a tournament.
 	 */
-	async deleteByRoundId(roundId: string): Promise<void> {
+	async deleteByTournamentId(tournamentId: string): Promise<void> {
 		const groups = await pb.collection('groups').getFullList({
-			filter: `round_id = "${roundId}"`
+			filter: `tournament_id = "${tournamentId}"`
 		});
 		for (const group of groups) {
 			await pb.collection('groups').delete(group.id);

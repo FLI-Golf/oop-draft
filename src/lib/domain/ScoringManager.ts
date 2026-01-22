@@ -1,5 +1,5 @@
 import { ValidationError } from '$lib/core/errors';
-import type { HoleScoreEvent, ProScorecard, ScorecardEntry } from '$lib/schemas/score.schema';
+import type { HoleScoreEvent, ProScorecard, ScorecardEntry, ScoreHalf } from '$lib/schemas/score.schema';
 import type { Hole } from '$lib/schemas/course.schema';
 
 /**
@@ -42,16 +42,16 @@ export class ScoringManager {
 	}
 
 	/**
-	 * Build a scorecard from score events.
+	 * Build a scorecard from score events for a half.
 	 */
 	static buildScorecard(
 		proId: string,
-		roundId: string,
+		half: ScoreHalf,
 		events: HoleScoreEvent[],
 		courseHoles: Hole[]
 	): ProScorecard {
-		// Filter events for this pro and round
-		const proEvents = events.filter((e) => e.pro_id === proId && e.round_id === roundId);
+		// Filter events for this pro and half
+		const proEvents = events.filter((e) => e.pro_id === proId && e.half === half);
 
 		// Get latest score per hole (in case of corrections)
 		const latestByHole = new Map<number, HoleScoreEvent>();
@@ -85,7 +85,7 @@ export class ScoringManager {
 
 		return {
 			pro_id: proId,
-			round_id: roundId,
+			half: half,
 			entries: entries.sort((a, b) => a.hole_number - b.hole_number),
 			total_throws: totalThrows,
 			total_par: totalPar,
