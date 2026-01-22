@@ -16,6 +16,56 @@
 	let isOwner = $derived(league && auth.userId && league.owner_id === auth.userId);
 	let isMyTurn = $derived(draftMgmt && auth.userId === draftMgmt.current_drafter_id);
 	let draftStatus = $derived(draftMgmt?.status || 'waiting');
+	
+	// Calculate next drafter for display
+	let nextDrafter = $derived.by(() => {
+		if (!draftMgmt || draftStatus !== 'in_progress') return null;
+		const { nextDrafterId } = calculateNextPickPreview();
+		if (!nextDrafterId || !draftMgmt.participants) return null;
+		return draftMgmt.participants[nextDrafterId]?.display_name || null;
+	});
+
+	// Filter available pros based on gender requirements
+	let filteredAvailablePros = $derived.by(() => {
+		if (!draftMgmt?.available_pros || !draftResults?.teams || !draftMgmt.current_drafter_id) {
+			return draftMgmt?.available_pros || [];
+		}
+
+		const currentTeam = draftResults.teams[draftMgmt.current_drafter_id];
+		if (!currentTeam) return draftMgmt.available_pros;
+
+		const maleCount = currentTeam.pros.filter((p: any) => p.gender === 'male').length;
+		const femaleCount = currentTeam.pros.filter((p: any) => p.gender === 'female').length;
+		const totalPicks = maleCount + femaleCount;
+
+		// Rounds 1-2: no restrictions
+		// Round 3-4: must have 2 males and 2 females total
+		if (totalPicks >= 2) {
+			// Need to check what's still needed
+			const needMale = maleCount < 2;
+			const needFemale = femaleCount < 2;
+
+			if (totalPicks === 2) {
+				// Round 3: if we have 2 of one gender, must pick the other
+				if (maleCount === 2) {
+					return draftMgmt.available_pros.filter((p: any) => p.gender === 'female');
+				}
+				if (femaleCount === 2) {
+					return draftMgmt.available_pros.filter((p: any) => p.gender === 'male');
+				}
+			} else if (totalPicks === 3) {
+				// Round 4: must complete the 2+2 requirement
+				if (maleCount < 2) {
+					return draftMgmt.available_pros.filter((p: any) => p.gender === 'male');
+				}
+				if (femaleCount < 2) {
+					return draftMgmt.available_pros.filter((p: any) => p.gender === 'female');
+				}
+			}
+		}
+
+		return draftMgmt.available_pros;
+	});
 
 	// Timer
 	let timeRemaining = $state<number | null>(null);
@@ -85,16 +135,128 @@
 	function startTimer() {
 		if (timerInterval) clearInterval(timerInterval);
 		
-		const updateTimer = () => {
-			if (draftMgmt?.pick_deadline) {
+		const updateTimer = async () => {
+			if (draftMgmt?.pick_deadline && draftMgmt?.status === 'in_progress') {
 				const deadline = new Date(draftMgmt.pick_deadline).getTime();
 				const now = Date.now();
-				timeRemaining = Math.max(0, Math.floor((deadline - now) / 1000));
+				const remaining = Math.max(0, Math.floor((deadline - now) / 1000));
+				timeRemaining = remaining;
+
+				// Auto-pick when timer hits 0 (only owner triggers this to avoid duplicates)
+				if (remaining === 0 && isOwner && draftMgmt.available_pros?.length > 0) {
+					clearInterval(timerInterval);
+					timerInterval = null;
+					await autoPickForCurrentDrafter();
+				}
 			}
 		};
 
 		updateTimer();
 		timerInterval = setInterval(updateTimer, 1000);
+	}
+
+	function getFilteredProsForUser(userId: string): any[] {
+		if (!draftMgmt?.available_pros || !draftResults?.teams) {
+			return draftMgmt?.available_pros || [];
+		}
+
+		const team = draftResults.teams[userId];
+		if (!team) return draftMgmt.available_pros;
+
+		const maleCount = team.pros.filter((p: any) => p.gender === 'male').length;
+		const femaleCount = team.pros.filter((p: any) => p.gender === 'female').length;
+		const totalPicks = maleCount + femaleCount;
+
+		if (totalPicks >= 2) {
+			if (totalPicks === 2) {
+				if (maleCount === 2) {
+					return draftMgmt.available_pros.filter((p: any) => p.gender === 'female');
+				}
+				if (femaleCount === 2) {
+					return draftMgmt.available_pros.filter((p: any) => p.gender === 'male');
+				}
+			} else if (totalPicks === 3) {
+				if (maleCount < 2) {
+					return draftMgmt.available_pros.filter((p: any) => p.gender === 'male');
+				}
+				if (femaleCount < 2) {
+					return draftMgmt.available_pros.filter((p: any) => p.gender === 'female');
+				}
+			}
+		}
+
+		return draftMgmt.available_pros;
+	}
+
+	async function autoPickForCurrentDrafter() {
+		// Pick the top available pro for the current drafter (respecting gender requirements)
+		const currentDrafterId = draftMgmt.current_drafter_id;
+		const availablePros = getFilteredProsForUser(currentDrafterId);
+		const topPro = availablePros[0];
+		if (!topPro) return;
+
+		try {
+			const now = new Date().toISOString();
+
+			// Add pro to current drafter's team
+			const updatedTeams = { ...draftResults.teams };
+			updatedTeams[currentDrafterId].pros.push({
+				id: topPro.id,
+				name: topPro.name,
+				rating: topPro.rating,
+				gender: topPro.gender,
+				pick_number: draftMgmt.current_pick,
+				round: draftMgmt.current_round,
+				auto_picked: true
+			});
+
+			// Add to picks history
+			const updatedPicks = [...draftResults.picks, {
+				pick_number: draftMgmt.current_pick,
+				round: draftMgmt.current_round,
+				user_id: currentDrafterId,
+				user_name: draftMgmt.participants[currentDrafterId].display_name,
+				pro_id: topPro.id,
+				pro_name: topPro.name,
+				timestamp: now,
+				auto_picked: true
+			}];
+
+			// Remove pro from available pool
+			const updatedAvailablePros = draftMgmt.available_pros.filter((p: any) => p.id !== topPro.id);
+
+			// Calculate next pick
+			const { nextRound, nextPick, nextDrafterId, isComplete, newDirection } = calculateNextPick();
+
+			// Update draft management
+			const updatedMgmt = {
+				...draftMgmt,
+				available_pros: updatedAvailablePros,
+				current_round: nextRound,
+				current_pick: nextPick,
+				current_drafter_id: nextDrafterId,
+				current_drafter_name: nextDrafterId ? draftMgmt.participants[nextDrafterId]?.display_name : null,
+				snake_direction: newDirection,
+				status: isComplete ? 'complete' : 'in_progress',
+				pick_deadline: isComplete ? null : new Date(Date.now() + (draftMgmt.settings.seconds_per_pick * 1000)).toISOString()
+			};
+
+			const updatedResults = {
+				...draftResults,
+				teams: updatedTeams,
+				picks: updatedPicks,
+				completed_at: isComplete ? now : null
+			};
+
+			await pb.collection('fantasy_tournaments').update(tournament.id, {
+				draft_management: JSON.stringify(updatedMgmt),
+				draft_results: JSON.stringify(updatedResults)
+			});
+
+			console.log(`Auto-picked ${topPro.name} for ${draftMgmt.participants[currentDrafterId].display_name}`);
+		} catch (err) {
+			console.error('Failed to auto-pick:', err);
+		}
 	}
 
 	async function updateSecondsPerPick(seconds: number) {
@@ -245,6 +407,33 @@
 		} catch (err) {
 			console.error('Failed to make pick:', err);
 		}
+	}
+
+	function calculateNextPickPreview(): { nextDrafterId: string | null } {
+		if (!draftMgmt) return { nextDrafterId: null };
+		
+		const totalParticipants = draftMgmt.settings.total_participants;
+		const totalRounds = draftMgmt.settings.total_rounds;
+		const currentPick = draftMgmt.current_pick;
+		const currentRound = draftMgmt.current_round;
+		const draftOrder = getDraftOrder();
+		let direction = draftMgmt.snake_direction;
+
+		const pickInRound = ((currentPick - 1) % totalParticipants) + 1;
+
+		if (pickInRound === totalParticipants) {
+			const nextRound = currentRound + 1;
+			if (nextRound > totalRounds) {
+				return { nextDrafterId: null };
+			}
+			direction = direction * -1;
+			const nextDrafterIndex = direction === 1 ? 0 : totalParticipants - 1;
+			return { nextDrafterId: draftOrder[nextDrafterIndex] };
+		}
+
+		const currentIndex = draftOrder.indexOf(draftMgmt.current_drafter_id);
+		const nextIndex = currentIndex + direction;
+		return { nextDrafterId: draftOrder[nextIndex] };
 	}
 
 	function calculateNextPick(): { nextRound: number; nextPick: number; nextDrafterId: string | null; isComplete: boolean; newDirection: number } {
@@ -456,6 +645,9 @@
 					<span class="clock-label">{draftStatus === 'paused' ? 'Draft Paused' : 'On The Clock'}</span>
 					<span class="clock-name">{draftMgmt.current_drafter_name}</span>
 					{#if isMyTurn && draftStatus !== 'paused'}<span class="clock-you">That's You!</span>{/if}
+					{#if nextDrafter && draftStatus === 'in_progress'}
+						<span class="clock-next">Next: {nextDrafter}</span>
+					{/if}
 				</div>
 				<div class="clock-controls">
 					{#if draftStatus === 'paused'}
@@ -510,7 +702,7 @@
 				<!-- Center: Available Pros -->
 				<div class="pros-column">
 					<div class="pros-header">
-						<h2>Available Pros ({draftMgmt.available_pros?.length || 0})</h2>
+						<h2>Available Pros ({filteredAvailablePros?.length || 0})</h2>
 						{#if isMyTurn && draftStatus === 'in_progress'}
 							<span class="your-pick-badge">Your Pick!</span>
 						{:else if draftStatus === 'paused'}
@@ -518,8 +710,12 @@
 						{/if}
 					</div>
 
+					{#if filteredAvailablePros?.length !== draftMgmt.available_pros?.length}
+						<p class="gender-filter-note">Filtered to meet 2M + 2F requirement</p>
+					{/if}
+
 					<div class="pros-list">
-						{#each draftMgmt.available_pros || [] as pro, idx}
+						{#each filteredAvailablePros || [] as pro, idx}
 							{@const isRecommended = idx === 0}
 							<div class="pro-row" class:recommended={isRecommended} class:selectable={isMyTurn && draftStatus === 'in_progress'}>
 								<span class="pro-rank">#{idx + 1}</span>
@@ -1072,6 +1268,11 @@
 		font-size: 0.9rem;
 	}
 
+	.clock-next {
+		color: #94a3b8;
+		font-size: 0.85rem;
+	}
+
 	.clock-controls {
 		display: flex;
 		align-items: center;
@@ -1264,6 +1465,16 @@
 		border-radius: 1rem;
 		font-size: 0.75rem;
 		font-weight: 600;
+	}
+
+	.gender-filter-note {
+		background: #1e3a5f;
+		color: #60a5fa;
+		padding: 0.5rem 0.75rem;
+		border-radius: 0.375rem;
+		font-size: 0.8rem;
+		margin: 0 0 0.75rem;
+		text-align: center;
 	}
 
 	.pros-list {

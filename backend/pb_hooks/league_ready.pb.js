@@ -65,16 +65,16 @@ onRecordAfterCreateSuccess((e) => {
         league.set("draft_order", JSON.stringify(draftOrder));
         console.log(`  Draft order set: ${draftOrder.join(", ")}`);
 
-        // 2b. Get all available pros for draft pool
+        // 2b. Get all available pros for draft pool (exclude reserves)
         const pros = $app.findRecordsByFilter(
             "pros",
-            "",
+            "name !~ 'Reserve'",
             "name",
             0,
             0
         );
         const allProIds = pros.map(p => p.id);
-        console.log(`  ${allProIds.length} pros available for drafts`);
+        console.log(`  ${allProIds.length} pros available for drafts (excluding reserves)`);
 
         // 3. Create fantasy_tournaments for scheduled tournaments only (not already played)
         const seasonId = league.get("season_id");
@@ -148,14 +148,14 @@ onRecordAfterCreateSuccess((e) => {
                 };
             }
 
-            // Build pro info for the pool
+            // Build pro info for the pool (already filtered to exclude reserves)
             const proPool = pros.map(p => ({
                 id: p.id,
                 name: p.get("name"),
                 team_id: p.get("pro_team_id"),
                 rating: p.get("rating"),
                 gender: p.get("gender")
-            }));
+            })).sort((a, b) => b.rating - a.rating);  // Sort by rating descending
 
             // Initialize draft_management with full context
             const draftManagement = {
