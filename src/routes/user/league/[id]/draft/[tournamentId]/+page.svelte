@@ -670,25 +670,34 @@
 			</div>
 
 			<div class="draft-main">
-				<!-- Left: Teams -->
+				<!-- Left: Draft Order & Teams -->
 				<div class="teams-column">
-					<h2>Teams</h2>
+					<h2>Draft Order</h2>
 					{#each getDraftOrder() as oderId, idx}
 						{@const teamData = draftResults.teams[oderId]}
+						{@const isNext = nextDrafter && draftMgmt.participants[oderId]?.display_name === nextDrafter}
 						{#if teamData}
-							<div class="team-card" class:is-picking={oderId === draftMgmt.current_drafter_id} class:is-you={oderId === auth.userId}>
+							<div class="team-card" 
+								class:is-picking={oderId === draftMgmt.current_drafter_id} 
+								class:is-next={isNext}
+								class:is-you={oderId === auth.userId}>
 								<div class="team-header">
 									<span class="draft-pos">#{idx + 1}</span>
 									<span class="team-name">{teamData.display_name}</span>
 									{#if oderId === auth.userId}<span class="you-badge">You</span>{/if}
-									{#if oderId === draftMgmt.current_drafter_id}<span class="picking-badge">Picking</span>{/if}
+									{#if oderId === draftMgmt.current_drafter_id}
+										<span class="picking-badge">Picking</span>
+									{:else if isNext}
+										<span class="next-badge">Next</span>
+									{/if}
 								</div>
 								<ul class="team-pros">
-									{#each teamData.pros as pro, proIdx}
+									{#each teamData.pros as pro}
 										<li>
 											<span class="round-num">R{pro.round}</span>
 											<span class="pro-name">{pro.name}</span>
 											<span class="pro-rating">{pro.rating}</span>
+											<span class="pro-gender-tag">{pro.gender === 'male' ? 'M' : 'F'}</span>
 										</li>
 									{:else}
 										<li class="empty">No picks yet</li>
@@ -699,7 +708,7 @@
 					{/each}
 				</div>
 
-				<!-- Center: Available Pros -->
+				<!-- Right: Available Pros -->
 				<div class="pros-column">
 					<div class="pros-header">
 						<h2>Available Pros ({filteredAvailablePros?.length || 0})</h2>
@@ -738,27 +747,6 @@
 									{isMyTurn && draftStatus === 'in_progress' ? 'Pick' : '-'}
 								</button>
 							</div>
-						{/each}
-					</div>
-				</div>
-
-				<!-- Right: Pick History -->
-				<div class="history-column">
-					<h2>Pick History</h2>
-					<div class="picks-history">
-						{#each [...(draftResults.picks || [])].reverse() as pick}
-							<div class="history-item" class:is-you={pick.user_id === auth.userId}>
-								<div class="history-pick-info">
-									<span class="history-round">R{pick.round}</span>
-									<span class="history-pick">P{pick.pick_number}</span>
-								</div>
-								<div class="history-details">
-									<span class="history-user">{pick.user_name}</span>
-									<span class="history-pro">{pick.pro_name}</span>
-								</div>
-							</div>
-						{:else}
-							<p class="no-picks">No picks yet</p>
 						{/each}
 					</div>
 				</div>
@@ -1339,12 +1327,12 @@
 	/* Draft Main */
 	.draft-main {
 		display: grid;
-		grid-template-columns: 260px 1fr 280px;
-		gap: 1rem;
+		grid-template-columns: 320px 1fr;
+		gap: 1.5rem;
 	}
 
 	/* Teams Column */
-	.teams-column h2, .pros-column h2, .history-column h2 {
+	.teams-column h2, .pros-column h2 {
 		font-size: 0.85rem;
 		color: #94a3b8;
 		margin: 0 0 0.75rem;
@@ -1405,6 +1393,15 @@
 		color: #0f172a;
 	}
 
+	.next-badge {
+		background: #3b82f6;
+		color: white;
+	}
+
+	.team-card.is-next {
+		border-color: #3b82f6;
+	}
+
 	.team-pros {
 		list-style: none;
 		margin: 0;
@@ -1433,6 +1430,14 @@
 	.team-pros .pro-rating {
 		color: #64748b;
 		font-size: 0.7rem;
+	}
+
+	.team-pros .pro-gender-tag {
+		font-size: 0.6rem;
+		padding: 0.1rem 0.25rem;
+		background: #334155;
+		border-radius: 0.125rem;
+		color: #94a3b8;
 	}
 
 	.team-pros li.empty {
@@ -1581,77 +1586,7 @@
 		animation: pulse 2s infinite;
 	}
 
-	/* History Column */
-	.history-column {
-		background: #1e293b;
-		border-radius: 0.75rem;
-		padding: 1rem;
-	}
 
-	.picks-history {
-		display: flex;
-		flex-direction: column;
-		gap: 0.375rem;
-		max-height: 500px;
-		overflow-y: auto;
-	}
-
-	.history-item {
-		display: flex;
-		gap: 0.75rem;
-		padding: 0.5rem;
-		background: #0f172a;
-		border-radius: 0.375rem;
-		border-left: 3px solid #334155;
-	}
-
-	.history-item.is-you {
-		border-left-color: #22c55e;
-	}
-
-	.history-pick-info {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		min-width: 2.5rem;
-	}
-
-	.history-round {
-		font-size: 0.65rem;
-		color: #64748b;
-	}
-
-	.history-pick {
-		font-size: 0.75rem;
-		font-weight: 600;
-		color: #94a3b8;
-	}
-
-	.history-details {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		gap: 0.125rem;
-	}
-
-	.history-user {
-		font-size: 0.75rem;
-		color: #94a3b8;
-	}
-
-	.history-pro {
-		font-size: 0.85rem;
-		color: #22c55e;
-		font-weight: 500;
-	}
-
-	.no-picks {
-		color: #475569;
-		font-style: italic;
-		text-align: center;
-		padding: 2rem;
-		font-size: 0.85rem;
-	}
 
 	/* Complete Section */
 	.complete-section {
@@ -1710,16 +1645,6 @@
 		font-size: 0.75rem;
 	}
 
-	@media (max-width: 1024px) {
-		.draft-main {
-			grid-template-columns: 1fr 1fr;
-		}
-
-		.history-column {
-			grid-column: span 2;
-		}
-	}
-
 	@media (max-width: 900px) {
 		.waiting-layout {
 			grid-template-columns: 1fr;
@@ -1737,10 +1662,6 @@
 	@media (max-width: 768px) {
 		.draft-main {
 			grid-template-columns: 1fr;
-		}
-
-		.history-column {
-			grid-column: span 1;
 		}
 
 		.on-the-clock {
