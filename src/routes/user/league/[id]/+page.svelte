@@ -10,11 +10,13 @@
 	let league = $state<any>(null);
 	let participants = $state<any[]>([]);
 	let pendingRequests = $state<any[]>([]);
+	let fantasyTournaments = $state<any[]>([]);
 	let loading = $state(true);
 	let error = $state('');
 
 	let isOwner = $derived(league && auth.userId && league.owner_id === auth.userId);
 	let isFull = $derived(league && league.current_participants >= league.max_participants);
+	let isReady = $derived(league && league.status === 'ready');
 
 	let copied = $state(false);
 
@@ -54,6 +56,14 @@
 			if (league.owner_id === auth.userId) {
 				pendingRequests = await pb.collection('join_requests').getFullList({
 					filter: `league_id = '${id}' && status = 'pending'`
+				});
+			}
+
+			// Load fantasy tournaments if league is ready or beyond
+			if (league.status !== 'pending_players') {
+				fantasyTournaments = await pb.collection('fantasy_tournaments').getFullList({
+					filter: `league_id = '${id}'`,
+					sort: 'tournament_number'
 				});
 			}
 		} catch (err) {
@@ -211,11 +221,52 @@
 
 
 
-		<!-- League Actions -->
-		{#if league.status === 'ready' && isOwner}
-			<div class="actions-section">
-				<button class="primary-btn">Start Draft</button>
-			</div>
+		<!-- Fantasy Tournaments Section -->
+		{#if fantasyTournaments.length > 0}
+			<section class="tournaments-section">
+				<h2>Season Tournaments</h2>
+				<div class="tournaments-grid">
+					{#each fantasyTournaments as ft}
+						{@const draftMgmt = typeof ft.draft_management === 'string' ? JSON.parse(ft.draft_management) : ft.draft_management}
+						{@const draftStatus = draftMgmt?.status || 'waiting'}
+						<div class="tournament-card">
+							<div class="tournament-header">
+								<span class="tournament-number">#{ft.tournament_number}</span>
+								<h3>{ft.tournament_name}</h3>
+							</div>
+							<div class="tournament-meta">
+								<span class="tournament-date">
+									{new Date(ft.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+								</span>
+								<span class="draft-status draft-{draftStatus}">{draftStatus}</span>
+							</div>
+							<div class="tournament-draft-info">
+								{#if draftStatus === 'waiting'}
+									<p>Draft not started</p>
+									{#if isOwner}
+										<a href="/user/league/{league.id}/draft/{ft.id}" class="start-draft-btn">
+											Start Draft
+										</a>
+									{:else}
+										<p class="waiting-text">Waiting for owner to start</p>
+									{/if}
+								{:else if draftStatus === 'in_progress'}
+									<p>Round {draftMgmt.current_round} • Pick {draftMgmt.current_pick}</p>
+									<p class="current-drafter">Now picking: <strong>{draftMgmt.current_drafter_name}</strong></p>
+									<a href="/user/league/{league.id}/draft/{ft.id}" class="join-draft-btn">
+										Join Draft
+									</a>
+								{:else if draftStatus === 'complete'}
+									<p>Draft complete</p>
+									<a href="/user/league/{league.id}/draft/{ft.id}" class="view-results-btn">
+										View Results
+									</a>
+								{/if}
+							</div>
+						</div>
+					{/each}
+				</div>
+			</section>
 		{/if}
 	{/if}
 </div>
@@ -519,6 +570,144 @@
 
 	.primary-btn:hover {
 		background: #16a34a;
+	}
+
+	/* Tournaments Section */
+	.tournaments-section {
+		margin-top: 2rem;
+	}
+
+	.tournaments-section h2 {
+		font-size: 1.25rem;
+		color: #f8fafc;
+		margin: 0 0 1rem;
+	}
+
+	.tournaments-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+		gap: 1rem;
+	}
+
+	.tournament-card {
+		background: #1e293b;
+		border: 1px solid #334155;
+		border-radius: 0.75rem;
+		padding: 1.25rem;
+		transition: border-color 0.2s;
+	}
+
+	.tournament-card:hover {
+		border-color: #475569;
+	}
+
+	.tournament-header {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		margin-bottom: 0.75rem;
+	}
+
+	.tournament-number {
+		background: #334155;
+		color: #94a3b8;
+		padding: 0.25rem 0.5rem;
+		border-radius: 0.25rem;
+		font-size: 0.75rem;
+		font-weight: 600;
+	}
+
+	.tournament-header h3 {
+		margin: 0;
+		font-size: 1rem;
+		color: #f8fafc;
+	}
+
+	.tournament-meta {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 1rem;
+		padding-bottom: 0.75rem;
+		border-bottom: 1px solid #334155;
+	}
+
+	.tournament-date {
+		color: #94a3b8;
+		font-size: 0.8rem;
+	}
+
+	.draft-status {
+		font-size: 0.7rem;
+		padding: 0.25rem 0.5rem;
+		border-radius: 1rem;
+		font-weight: 600;
+		text-transform: uppercase;
+	}
+
+	.draft-waiting { background: #334155; color: #94a3b8; }
+	.draft-in_progress { background: #f59e0b; color: #0f172a; }
+	.draft-complete { background: #22c55e; color: #0f172a; }
+
+	.tournament-draft-info {
+		text-align: center;
+	}
+
+	.tournament-draft-info p {
+		margin: 0 0 0.5rem;
+		color: #94a3b8;
+		font-size: 0.85rem;
+	}
+
+	.current-drafter {
+		color: #f59e0b !important;
+	}
+
+	.current-drafter strong {
+		color: #fbbf24;
+	}
+
+	.waiting-text {
+		font-style: italic;
+		font-size: 0.8rem !important;
+	}
+
+	.start-draft-btn, .join-draft-btn, .view-results-btn {
+		display: inline-block;
+		margin-top: 0.5rem;
+		padding: 0.5rem 1rem;
+		border-radius: 0.375rem;
+		font-size: 0.85rem;
+		font-weight: 600;
+		text-decoration: none;
+		transition: background 0.2s;
+	}
+
+	.start-draft-btn {
+		background: #22c55e;
+		color: #0f172a;
+	}
+
+	.start-draft-btn:hover {
+		background: #16a34a;
+	}
+
+	.join-draft-btn {
+		background: #f59e0b;
+		color: #0f172a;
+	}
+
+	.join-draft-btn:hover {
+		background: #d97706;
+	}
+
+	.view-results-btn {
+		background: #334155;
+		color: #e2e8f0;
+	}
+
+	.view-results-btn:hover {
+		background: #475569;
 	}
 
 	@media (max-width: 640px) {
