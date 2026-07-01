@@ -1,3 +1,4 @@
+<img width="640" height="449" alt="oop-draft-landing" src="https://github.com/user-attachments/assets/aaf02eee-ec02-4840-9e3c-e6c113b0ef17" />
 # Svelte + PocketBase Boilerplate
 
 SvelteKit 5 frontend with PocketBase backend, ready for Railway deployment.
