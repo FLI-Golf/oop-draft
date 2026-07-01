@@ -95,7 +95,7 @@
 <!-- Auth Modal -->
 {#if showAuthModal}
 	<div class="modal-overlay" onclick={closeModal} onkeydown={(e) => e.key === 'Escape' && closeModal()} role="button" tabindex="0">
-		<div class="modal" onclick={(e) => e.stopPropagation()} onkeydown={() => {}} role="dialog" aria-modal="true">
+		<div class="modal" onclick={(e) => e.stopPropagation()} onkeydown={() => {}} role="dialog" aria-modal="true" tabindex="-1">
 			<button class="modal-close" onclick={closeModal}>&times;</button>
 			<h2>{authMode === 'login' ? 'Sign In' : 'Create Account'}</h2>
 			
@@ -276,9 +276,14 @@
 <style>
 	:global(body) {
 		margin: 0;
-		font-family: system-ui, -apple-system, sans-serif;
-		background: #0f172a;
+		font-family:
+			Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+		background: #0b1222;
 		color: #e2e8f0;
+	}
+
+	:global(*) {
+		box-sizing: border-box;
 	}
 
 	main {
@@ -292,14 +297,15 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		padding: 1rem;
-		border-bottom: 1px solid #1e293b;
+		min-height: 57px;
+		padding: 0 1rem;
 	}
 
 	.logo {
-		font-size: 1.5rem;
-		font-weight: 700;
-		color: #22c55e;
+		font-size: 1.45rem;
+		font-weight: 800;
+		letter-spacing: 0;
+		color: #2dce6f;
 	}
 
 	nav {
@@ -315,26 +321,27 @@
 
 	.nav-btn {
 		background: transparent;
-		color: #e2e8f0;
+		color: #f8fafc;
 		border: none;
-		padding: 0.5rem 1rem;
-		font-size: 0.9rem;
+		padding: 0.62rem 1.2rem;
+		font-size: 0.86rem;
 		cursor: pointer;
-		border-radius: 0.375rem;
+		border-radius: 0.38rem;
 		transition: background 0.2s;
+		font-weight: 800;
 	}
 
 	.nav-btn:hover {
-		background: #1e293b;
+		background: #17243a;
 	}
 
 	.primary-nav {
-		background: #22c55e;
-		color: #0f172a;
+		background: #31c96b;
+		color: #050a14;
 	}
 
 	.primary-nav:hover {
-		background: #16a34a;
+		background: #23b85f;
 	}
 
 	/* Modal */
@@ -468,25 +475,29 @@
 	/* Hero */
 	.hero {
 		text-align: center;
-		padding: 4rem 1rem;
-		background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
-		border-radius: 0 0 2rem 2rem;
-		margin-bottom: 3rem;
+		min-height: 318px;
+		padding: 4.65rem 1rem 3.85rem;
+		background: linear-gradient(112deg, #1f3f65 0%, #111c31 72%);
+		border-radius: 0 0 1.9rem 1.9rem;
+		margin-bottom: 3.35rem;
 	}
 
 	h1 {
-		font-size: 3rem;
+		font-size: clamp(2.25rem, 4vw, 3rem);
 		margin: 0;
-		background: linear-gradient(90deg, #22c55e, #10b981);
+		background: linear-gradient(90deg, #2bd36f, #25c58f);
 		-webkit-background-clip: text;
 		-webkit-text-fill-color: transparent;
 		background-clip: text;
+		font-weight: 900;
+		letter-spacing: 0;
+		line-height: 1.12;
 	}
 
 	.tagline {
 		font-size: 1.25rem;
-		color: #94a3b8;
-		margin: 1rem 0 2rem;
+		color: #9bb7d6;
+		margin: 1.3rem 0 2rem;
 	}
 
 	.cta-buttons {
@@ -497,11 +508,12 @@
 	}
 
 	button {
-		padding: 0.875rem 2rem;
+		min-width: 120px;
+		padding: 0.9rem 2rem;
 		font-size: 1rem;
-		border-radius: 0.5rem;
+		border-radius: 0.4rem;
 		cursor: pointer;
-		font-weight: 600;
+		font-weight: 800;
 		transition: transform 0.2s, box-shadow 0.2s;
 	}
 
@@ -510,8 +522,8 @@
 	}
 
 	.primary {
-		background: #22c55e;
-		color: #0f172a;
+		background: #31c96b;
+		color: #050a14;
 		border: none;
 	}
 
@@ -521,8 +533,8 @@
 
 	.secondary {
 		background: transparent;
-		color: #22c55e;
-		border: 2px solid #22c55e;
+		color: #31d976;
+		border: 2px solid #13d779;
 	}
 
 	.secondary:hover {
@@ -531,14 +543,16 @@
 
 	/* Sections */
 	section {
-		margin-bottom: 4rem;
+		margin-bottom: 4.25rem;
 	}
 
 	h2 {
 		text-align: center;
 		font-size: 2rem;
-		margin-bottom: 2rem;
+		margin: 0 0 2rem;
 		color: #f8fafc;
+		font-weight: 900;
+		letter-spacing: 0;
 	}
 
 	/* Features */
@@ -549,11 +563,12 @@
 	}
 
 	.feature-card {
-		background: #1e293b;
-		padding: 1.5rem;
-		border-radius: 1rem;
+		min-height: 192px;
+		background: #1b2638;
+		padding: 1.9rem 1.9rem 1.6rem;
+		border-radius: 0.9rem;
 		text-align: center;
-		border: 1px solid #334155;
+		border: 1px solid #324158;
 		transition: border-color 0.2s;
 	}
 
@@ -564,25 +579,27 @@
 	.icon {
 		font-size: 2.5rem;
 		display: block;
-		margin-bottom: 1rem;
+		margin-bottom: 1.05rem;
 	}
 
 	.feature-card h3 {
-		margin: 0 0 0.5rem;
+		margin: 0 0 0.62rem;
 		color: #f8fafc;
+		font-size: 1.15rem;
+		font-weight: 900;
 	}
 
 	.feature-card p {
 		margin: 0;
-		color: #94a3b8;
+		color: #a5bfdd;
 		font-size: 0.9rem;
+		line-height: 1.45;
 	}
 
 	/* Workflow */
 	.workflow-steps {
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: center;
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(178px, 1fr));
 		gap: 1rem;
 	}
 
@@ -590,17 +607,19 @@
 		display: flex;
 		align-items: center;
 		gap: 0.75rem;
-		background: #1e293b;
-		padding: 1rem 1.25rem;
+		min-height: 68px;
+		background: #1b2638;
+		padding: 0.9rem 1rem;
 		border-radius: 0.75rem;
-		border: 1px solid #334155;
+		border: 1px solid #324158;
 	}
 
 	.step-number {
 		width: 2rem;
 		height: 2rem;
-		background: #22c55e;
-		color: #0f172a;
+		flex: 0 0 2rem;
+		background: #31d36f;
+		color: #06111b;
 		border-radius: 50%;
 		display: flex;
 		align-items: center;
@@ -610,16 +629,20 @@
 
 	.step-content h4 {
 		margin: 0;
-		font-size: 0.9rem;
+		font-size: 0.86rem;
 		color: #f8fafc;
+		font-weight: 900;
+		line-height: 1.15;
 	}
 
 	.status-badge {
 		font-size: 0.7rem;
-		padding: 0.2rem 0.5rem;
+		display: inline-block;
+		margin-top: 0.38rem;
+		padding: 0.25rem 0.5rem;
 		border-radius: 0.25rem;
 		text-transform: uppercase;
-		font-weight: 600;
+		font-weight: 800;
 	}
 
 	.status-badge.pending_players { background: #fbbf24; color: #0f172a; }
